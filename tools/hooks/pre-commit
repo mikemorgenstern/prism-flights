@@ -1,0 +1,4 @@
+#!/bin/sh
+# Claude · 2026-11-23 · Session 8e680ddd · refuse a commit while the working tree fails the privacy check
+# Turn on once per clone: git config core.hooksPath tools/hooks
+exec sh "$(git rev-parse --show-toplevel)/tools/check_public.sh" --tree

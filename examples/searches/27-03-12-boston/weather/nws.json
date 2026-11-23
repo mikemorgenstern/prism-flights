@@ -1,0 +1,18 @@
+{
+ "ORD": {
+  "updated": "2027-02-20T17:00:00-06:00",
+  "office": "LOT",
+  "alerts": [],
+  "periods": [
+   {
+    "name": "Friday",
+    "start": "2027-03-12T06:00:00-06:00",
+    "temp": 41,
+    "wind": "15 mph",
+    "pop": 70,
+    "short": "Rain Showers",
+    "detail": "Sample forecast."
+   }
+  ]
+ }
+}

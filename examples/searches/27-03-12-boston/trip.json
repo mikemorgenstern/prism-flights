@@ -1,0 +1,56 @@
+{
+ "title": "Boston flights, Mar 12 and 13 (sample)",
+ "h1": "Seattle to Boston, Fri Mar 12 or Sat Mar 13 (made-up sample)",
+ "slug": "27-03-12-boston",
+ "short": "Seattle to Boston",
+ "card_name": "Boston, Mar 12 or 13",
+ "route": "Seattle or Everett \u2192 Boston, Providence",
+ "scope": "Economy, one way, 1 passenger. Made-up sample data.",
+ "searched": "2027-02-20T18:00:00-08:00",
+ "searched_label": "Sat Feb 20, 6:00pm PT (sample)",
+ "origin": "SEA",
+ "origin_name": "Seattle or Everett",
+ "origins": {
+  "SEA": {
+   "name": "Seattle",
+   "dir": "."
+  },
+  "PAE": {
+   "name": "Everett",
+   "dir": "pae"
+  }
+ },
+ "primary_origin": "SEA",
+ "dest_names": {
+  "BOS": "Boston",
+  "PVD": "Providence"
+ },
+ "dest_default": [
+  "BOS",
+  "PVD"
+ ],
+ "dest_region": "New England",
+ "dates": [
+  "2027-03-12",
+  "2027-03-13"
+ ],
+ "tz_diff": 180,
+ "tz_origin": "PT",
+ "tz_dest": "ET",
+ "held": {
+  "airline": "Alaska",
+  "flight": "Alaska AS 7468",
+  "fromName": "Seattle",
+  "to": "BOS",
+  "d": 12,
+  "dep": 480,
+  "arr": 1120,
+  "cabin": "Main",
+  "price": 287.6
+ },
+ "notes": [
+  "Everything on this page is made up, to show how the portal works.",
+  "Prices are one way, economy, one passenger."
+ ],
+ "why": "Sample trip."
+}

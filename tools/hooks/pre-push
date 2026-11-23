@@ -1,0 +1,3 @@
+#!/bin/sh
+# Claude · 2026-11-23 · Session 8e680ddd · refuse a push while the files or the full history fail the privacy check
+exec sh "$(git rev-parse --show-toplevel)/tools/check_public.sh"

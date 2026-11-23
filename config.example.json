@@ -1,0 +1,53 @@
+{
+ "_about": "Copy to config.local.json and fill in what you use. Every key is optional; leave one out to turn that feature off. config.local.json is ignored by git.",
+ "public_base": "https://portal.example.com",
+ "_public_base": "Address of the server that runs src/service.py; deploy.sh checks the pages there and search jobs report progress to it.",
+ "box": "user@server.example.com",
+ "_box": "ssh target for deploy.sh and for credits.py requests/done. Leave out to run everything on one machine.",
+ "box_project": "flights-portal",
+ "_box_project": "Folder on the server (relative to the ssh login's home) that holds src/ and site/.",
+ "box_port": 8873,
+ "email_archive_cmd": [
+  "ssh",
+  "user@mail-archive.example.com",
+  "mail-archive-readonly"
+ ],
+ "_email_archive_cmd": "Optional command that answers one read-only query about your email (JSON on stdin: {op: sql, db, table, sql}; prints {rows: [...]}); credits.py flags uses it to spot booking emails. Leave out to turn the email check off.",
+ "email_archive_db": "mail.db",
+ "notes_inbox": "~/Notes/Inbox",
+ "_notes_inbox": "Folder where credits.py record drops a dated Markdown snapshot of balances and credits. Leave out to skip snapshots.",
+ "old_links": [
+  {
+   "text": "older page",
+   "url": "https://example.com/older-page/"
+  }
+ ],
+ "_old_links": "Links shown at the bottom of the home page.",
+ "skill_dir": "~/flight-search-skill",
+ "_skill_dir": "Folder with the written search steps (SKILL.md and scripts) that a search job follows.",
+ "ask_claude": "claude",
+ "ask_router": "",
+ "_ask_router": "Optional command that picks which Claude login and model answer questions; prints JSON {status: ROUTED, provider: claude, seat_dir, model, effort, account}. Leave empty to use the default claude login and ask_model.",
+ "ask_router_args": [
+  "--json"
+ ],
+ "ask_model": "sonnet",
+ "mac": "user@mac.example.com",
+ "_mac": "ssh target of the Mac that runs search jobs with a signed-in browser. Leave out to turn search jobs off.",
+ "mac_project": "/path/to/prism-flights",
+ "mac_job_dir": "jobs",
+ "mac_claude": "~/.local/bin/claude",
+ "mac_profile": "",
+ "_mac_profile": "Optional name of a Claude config folder (CLAUDE_CONFIG_DIR) under mac_profiles_dir for jobs; empty uses the default login.",
+ "mac_profiles_dir": "~/.claude-profiles",
+ "job_model": "opus",
+ "rules_tool": "",
+ "_rules_tool": "Optional command that can refuse a login for jobs and name the model (subcommands: json, default-model); empty skips it.",
+ "rules_file": "",
+ "policy_file": "",
+ "_policy_file": "Optional extra file a search job may read.",
+ "browser_mcp": "playwright",
+ "_browser_mcp": "Name of the MCP server that drives the signed-in browser for search jobs.",
+ "blocked_mcp": [],
+ "_rules_file": "Optional JSON file listing logins, used with rules_tool."
+}

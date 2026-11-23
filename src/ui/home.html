@@ -1,0 +1,130 @@
+<!doctype html>
+<!-- ai-generated | Claude (Opus 5.5), session 8e680ddd-6b26-44d7-8b07-e667fe163a25 | Prism home: trips, travel credits, points | data: /*__PROV__*/ -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prism</title>
+<!--__FAVICON__-->
+<style>
+/*__CSS__*/
+/*__LOGOCSS__*/
+/*__ASKCSS__*/
+.needs{padding:10px 14px;margin:10px 0;border-left:4px solid var(--warn);display:flex;flex-direction:column;gap:4px;font-size:14px}
+.trip{margin:0 0 10px;overflow:hidden}
+.trip.liked{background:var(--like);box-shadow:inset 4px 0 0 var(--likeline)}
+.trip.hid{opacity:.5}
+.tl{display:block;padding:12px 14px 6px;color:inherit;text-decoration:none}
+.tn{font-size:18px;font-weight:650}
+.tm{font-size:13px;margin:4px 0 6px}
+.tp{font-size:14px;margin:2px 0}
+.tp .pl{display:inline-block;min-width:104px;color:var(--ink2);font-size:13px}
+.tf{display:flex;align-items:center;gap:8px;padding:4px 14px 10px}
+.tf .sp{flex:1}
+.past summary{padding:6px 0}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--ink)}
+.btn.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.btn.ok{background:var(--goodbg);border-color:var(--good);color:var(--good);font-weight:600}
+.foot{margin-top:24px;font-size:12px;color:var(--muted);max-width:80ch}
+/* zone colors: red under 6 months, amber 6 to 12 months, green later (green = good, red = bad) */
+.t-bad{color:var(--bad)}.t-warn{color:var(--warn)}.t-good{color:var(--good)}.t-exp{color:var(--muted)}
+/* summary tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:0 0 10px}
+.tile2{padding:12px 14px}
+.tile2 .k{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+.tile2 .v{font-size:24px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile2 .d{font-size:12px;color:var(--ink2)}
+@media (max-width:699px){.tiles{grid-template-columns:repeat(3,1fr);gap:6px}.tile2{padding:8px 10px}.tile2 .v{font-size:17px}.tile2 .k{font-size:10px}.tile2 .d{font-size:11px}}
+/* expiry timeline */
+.xt{padding:12px 0 6px;margin:0 0 10px;overflow:hidden}
+.xh{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:0 14px 8px}
+.xh b{font-size:14px;margin-right:auto}
+.lg{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2)}
+.lg i{display:inline-block;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--ink2);width:10px;height:10px;margin:0 2px}
+.xp{position:relative}
+.xz{position:absolute;top:0}
+.xz.r{background:var(--badbg)}
+.xz.a{background:var(--warnbg)}
+.xzl{position:absolute;top:3px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;opacity:.85}
+.xa{position:absolute;height:1px;background:var(--line2)}
+.xtd{position:absolute;top:0;width:2px;margin-left:-1px;background:var(--ink2);border-radius:1px}
+.xs{position:absolute;width:1px;margin-left:-.5px;background:var(--line2)}
+.xk{position:absolute;font-size:10.5px;color:var(--muted);transform:translateX(-50%);white-space:nowrap;line-height:1.25;text-align:center}
+.xk.l{transform:none;text-align:left;color:var(--ink2);font-weight:600}
+.xkm{position:absolute;width:1px;height:5px;background:var(--line2)}
+.xm{position:absolute;display:flex;align-items:center;gap:5px;padding:0;margin:0;border:0;background:none;cursor:pointer;font:inherit;color:inherit;border-radius:999px}
+.xm.fl{flex-direction:row-reverse}
+.xm:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.xd{position:relative;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--zc),0 0 0 5px var(--card)}
+.xd.dash{box-shadow:0 0 0 5px var(--card);outline:2.5px dashed var(--zc);outline-offset:0}
+.xd .li{position:absolute;inset:17%;background-position:center;background-size:contain;background-repeat:no-repeat}
+.z-bad{--zc:var(--bad)}.z-warn{--zc:var(--warn)}.z-good{--zc:var(--good)}.z-exp{--zc:var(--muted)}
+.xl{font-size:12.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--zc);background:var(--card);padding:0 4px;border-radius:5px}
+/* credit rows */
+.crow{padding:10px 12px;margin:0 0 8px;cursor:pointer}
+.cr1{display:flex;gap:10px;align-items:flex-start}
+.cm{flex:1;min-width:0}
+.cra{text-align:right;flex:none}
+.amt{font-size:16px;font-weight:650;white-space:nowrap;font-variant-numeric:tabular-nums}
+.amt.good{color:var(--good)}.amt.warn{color:var(--warn)}.amt.unk{color:var(--ink2)}
+.dt{font-size:12px;color:var(--ink2);white-space:nowrap}
+.dt.t-bad,.dt.t-warn{font-weight:600}
+.crow:not(.open) .cm .mu.from{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tb{display:flex;align-items:center;gap:10px;margin:8px 0 2px 50px}
+.tbt{position:relative;flex:1;height:6px;border-radius:3px;background:var(--trk);overflow:hidden}
+.tbf{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--zc)}
+.tbz{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--card);z-index:1}
+.tbl{font-size:12px;font-weight:650;white-space:nowrap;min-width:70px;text-align:right;color:var(--zc)}
+.ca{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 0 50px}
+.ca .chk{flex:1 1 180px;text-align:right}
+.cdet{margin:8px 0 0 50px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
+/* credit codes (shown only after a tap) */
+.cbox{margin:10px 0 2px 50px;padding:10px 12px;border:1px dashed var(--line2);border-radius:10px;background:var(--bg);display:flex;flex-direction:column;gap:6px;cursor:auto}
+.ck{font-size:11px;color:var(--ink2);font-weight:650;text-transform:uppercase;letter-spacing:.05em}
+.crw{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cv{font:650 20px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.12em;padding:5px 10px;border-radius:8px;background:var(--card);border:1px solid var(--line);-webkit-user-select:all;user-select:all;cursor:text}
+.cbox .mu{font-size:12.5px;color:var(--ink2)}
+@media (max-width:520px){.tb,.ca,.cdet,.cbox{margin-left:0}.ca .chk{text-align:left;flex-basis:100%}}
+/* balances */
+.brow{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.brow:last-child{border-bottom:0}
+.bv{font-size:17px;font-weight:650;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}.bv small{font-size:12px;font-weight:400;color:var(--ink2)}
+.bv .eqv{display:block;font-size:12px;font-weight:600;color:var(--pts)}
+.bact{justify-self:end}
+@media (max-width:520px){.brow{grid-template-columns:auto 1fr auto}.bact{grid-column:2/-1;justify-self:start}}
+</style>
+</head>
+<body>
+<!--__HERO__-->
+<div class="wrap">
+<h1>Prism</h1>
+<p class="sub">Trips, travel credits and points. Updated <!--__UPDATED__-->. Only on your private network. <span class="save" id="save"></span></p>
+<div id="pills"></div>
+<div id="needs"></div>
+<div id="ask"></div>
+<h2>Trips <span class="act" id="tripHid"></span></h2>
+<div id="trips"></div>
+<h2 id="creditsH">Travel credits, soonest first <span class="act" id="chkAll"></span></h2>
+<div class="tiles" id="tiles"></div>
+<div class="box xt" id="xt"></div>
+<div id="credits"></div>
+<p class="mu" id="noneAt"></p>
+<h2 id="balsH">Miles and points</h2>
+<div class="box" id="bals"></div>
+<p class="mu" id="valSrc"></p>
+<p class="foot" id="track"></p>
+<p class="foot">Recheck asks Claude to look again live; requests wait as drafts until you press Submit, and Claude does them at the next credits check or flight search. Codes stay hidden until you tap Show code, and are fetched from your portal only then; PINs are never stored. Tap a credit for where it came from. <span id="oldLinks"></span></p>
+</div>
+<div class="draftbar" id="draftbar"><span class="t" id="draftText"></span><button class="btn" onclick="Requests.drafts=[];Requests.keep();Requests.paint();renderAll()">Clear</button><button class="btn pri" onclick="Requests.submit().then(renderAll)">Submit</button></div>
+<script>
+const LOGOS = new Set(/*__LOGONAMES__*/[]);
+const HOME = /*__DATA__*/null;
+/*__COMMON__*/
+/*__APP__*/
+</script>
+<script>
+/* Plan a new trip box (ask.js), in its own script so an error in the home code above cannot stop it */
+/*__ASKJS__*/
+</script>
+</body>
+</html>

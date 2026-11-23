@@ -1,0 +1,13 @@
+# Your own data and settings never go in git
+config.local.json
+data/
+site/
+sample-site/
+sample-state/
+build/
+src/logos.json
+# Generated and system files
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/

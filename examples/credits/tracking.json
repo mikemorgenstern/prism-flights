@@ -1,0 +1,53 @@
+{
+ "tracker_version": 1,
+ "changes": [
+  {
+   "version": 1,
+   "date": "2027-02-20",
+   "what": "Sample: started tracking five airlines"
+  }
+ ],
+ "airlines": {
+  "Delta": {
+   "tracked_since": "2027-02-20",
+   "email_backfill": {
+    "done": "2027-02-20",
+    "scope": "sample"
+   },
+   "last_live_check": "2027-02-20T19:30:00-08:00"
+  },
+  "Southwest": {
+   "tracked_since": "2027-02-20",
+   "email_backfill": {
+    "done": "2027-02-20",
+    "scope": "sample"
+   },
+   "last_live_check": "2027-02-20T19:30:00-08:00"
+  },
+  "American": {
+   "tracked_since": "2027-02-20",
+   "email_backfill": {
+    "done": "2027-02-20",
+    "scope": "sample"
+   },
+   "last_live_check": "2027-02-20T19:30:00-08:00"
+  },
+  "United": {
+   "tracked_since": "2027-02-20",
+   "email_backfill": {
+    "done": "2027-02-20",
+    "scope": "sample"
+   },
+   "last_live_check": "2027-02-20T19:30:00-08:00"
+  },
+  "Alaska": {
+   "tracked_since": "2027-02-20",
+   "email_backfill": {
+    "done": "2027-02-20",
+    "scope": "sample"
+   },
+   "last_live_check": "2027-02-20T19:30:00-08:00"
+  }
+ },
+ "last_record": "2027-02-20T19:30:00-08:00"
+}

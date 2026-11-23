@@ -1,0 +1,100 @@
+{
+ "asof": "Sat Feb 20, 2027, 7:30pm PT (sample data)",
+ "programs": [
+  {
+   "airline": "Delta",
+   "program": "SkyMiles",
+   "unit": "miles",
+   "balance": 84210,
+   "balanceAsOf": "Feb 20, 7:30pm PT",
+   "expiry": "",
+   "creditsStatus": "checked",
+   "creditsNote": "Sample: no certificates.",
+   "creditsSource": "live"
+  },
+  {
+   "airline": "Southwest",
+   "program": "Rapid Rewards",
+   "unit": "points",
+   "balance": 51300,
+   "balanceAsOf": "Feb 20, 7:25pm PT",
+   "expiry": "",
+   "creditsStatus": "checked",
+   "creditsNote": "Sample.",
+   "creditsSource": "live"
+  },
+  {
+   "airline": "American",
+   "program": "AAdvantage",
+   "unit": "miles",
+   "balance": 72640,
+   "balanceAsOf": "Feb 20, 7:20pm PT",
+   "expiry": "",
+   "creditsStatus": "checked",
+   "creditsNote": "Sample.",
+   "creditsSource": "live"
+  },
+  {
+   "airline": "United",
+   "program": "MileagePlus",
+   "unit": "miles",
+   "balance": 40125,
+   "balanceAsOf": "Feb 20, 7:15pm PT",
+   "expiry": "Miles never expire",
+   "creditsStatus": "checked",
+   "creditsNote": "Sample.",
+   "creditsSource": "live"
+  },
+  {
+   "airline": "Alaska",
+   "program": "Atmos Rewards",
+   "unit": "points",
+   "balance": 28900,
+   "balanceAsOf": "Feb 20, 7:10pm PT",
+   "expiry": "",
+   "creditsStatus": "unchecked",
+   "creditsNote": "Sample: credits not checked yet.",
+   "creditsSource": "live"
+  }
+ ],
+ "credits": [
+  {
+   "airline": "Southwest",
+   "what": "Flight credit",
+   "amount": 142.3,
+   "useBy": "2027-08-15",
+   "useByLabel": "Expires",
+   "from": "Sample: canceled trip",
+   "note": "Not transferable"
+  },
+  {
+   "airline": "United",
+   "what": "TravelBank",
+   "amount": 75.0,
+   "useBy": "2027-12-31",
+   "useByLabel": "Expires",
+   "from": "Sample: card benefit",
+   "note": "Applies at checkout"
+  },
+  {
+   "airline": "Delta",
+   "what": "eCredit",
+   "amount": 210.55,
+   "useBy": "2027-05-01",
+   "useByLabel": "Use by",
+   "from": "Sample: schedule change",
+   "note": ""
+  },
+  {
+   "airline": "American",
+   "what": "Trip credit",
+   "amount": null,
+   "original": 188.2,
+   "useBy": "2027-09-30",
+   "useByLabel": "Start travel by",
+   "from": "Sample: canceled trip",
+   "note": "Usable amount shown at checkout"
+  }
+ ],
+ "loose": []
+}
