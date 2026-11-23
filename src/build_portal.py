@@ -53,8 +53,8 @@ def weather_badges(trip_dir, dates):
             s = p['short'].lower()
             kind = 'snow' if 'snow' in s else 'storms' if 'thunder' in s else 'rain' if ('rain' in s or 'shower' in s) else 'fog' if 'fog' in s else None
             if not kind: continue
-            when = p['name'].replace('Night', 'night').split()
-            label = when[0][:3] + (' night' if len(when) > 1 else '')
+            night = 'night' in p['name'].lower()   # NWS names periods "Tonight", "Wednesday Night", "Thanksgiving Day"; label by weekday instead
+            label = dt.date.fromisoformat(p['start'][:10]).strftime('%a') + (' night' if night else '')
             found.append((['fog', 'rain', 'storms', 'snow'].index(kind), f'{kind} {label}'))
         if found:
             worst = max(k for k, _ in found); kind = ['fog', 'rain', 'storms', 'snow'][worst]
