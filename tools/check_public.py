@@ -4,7 +4,8 @@
   python3 tools/check_public.py [--tree]      run from anywhere inside the repo
 
 Checks, in the working tree and (unless --tree) the whole git history:
-  1. every tracked file, and every file on disk outside .git, is listed in tools/public-files.txt
+  1. every tracked file, and every untracked file git could add (not excluded by .gitignore), is listed in
+     tools/public-files.txt
   2. no binary file, except images under src/assets/ that carry no comments, XMP, GPS or large EXIF blocks
   3. no value from the maintainer's private banned list in file contents, the full history (git log -p --all),
      commit messages, author and committer names and emails, branch names or tags
@@ -79,12 +80,10 @@ def main():
     rules, allow = load_rules(top)
     listed = {l.strip() for l in open('tools/public-files.txt') if l.strip() and not l.startswith('#')}
     tracked = set(git('ls-files', '-z').stdout.split('\0')) - {''}
-    ondisk = set()
-    for d, dirs, files in os.walk('.'):
-        dirs[:] = [x for x in dirs if x != '.git']
-        for f in files: ondisk.add(os.path.relpath(os.path.join(d, f)))
+    # files git could commit: tracked ones plus untracked ones that .gitignore does not exclude
+    ondisk = {f for f in tracked | (set(git('ls-files', '-z', '--others', '--exclude-standard').stdout.split('\0')) - {''}) if os.path.isfile(f)}
     for f in sorted(tracked - listed): fail(f'{f}: tracked but not in tools/public-files.txt')
-    for f in sorted(ondisk - listed): fail(f'{f}: on disk but not in tools/public-files.txt (remove it or list it)')
+    for f in sorted(ondisk - listed): fail(f'{f}: could be committed but is not in tools/public-files.txt (remove it, ignore it or list it)')
     for f in sorted(ondisk & listed):
         data = open(f, 'rb').read()
         if b'\0' in data[:8000] or f.endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.zip')):
@@ -95,7 +94,7 @@ def main():
         else:
             scan(data.decode('utf-8', 'replace'), f, rules, allow)
         scan(f, 'file name ' + f, rules, allow)
-    print(f'files: {len(ondisk)} on disk, {len(tracked)} tracked, {len(listed)} listed')
+    print(f'files: {len(ondisk)} committable, {len(tracked)} tracked, {len(listed)} listed')
     if not tree_only and git('rev-parse', '--verify', 'HEAD').returncode == 0:
         scan(git('log', '-p', '--all', '--format=%H%n%an <%ae>%n%cn <%ce>%n%B').stdout, 'history', rules, allow)  # images: checked in the tree
         scan(git('for-each-ref', '--format=%(refname) %(contents)').stdout, 'refs and tags', rules, allow)
