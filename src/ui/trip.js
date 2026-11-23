@@ -244,25 +244,67 @@ function meter(f, r) {
   const tip = "Points value on this fare: " + c.toFixed(2) + "¢ each (" + money(cash) + (f[FA.cash] != null ? " cash" : " lowest cash for this flight") + (f[FA.tax] ? " minus " + money(f[FA.tax], true) + " tax" : "") + ", divided by " + pts.toLocaleString() + "). Typical for " + PNAME[p] + ": " + v + "¢. " + (lvl == 3 ? "Good use of points." : lvl == 1 ? "Poor use of points: cash is the better deal." : "About typical.");
   return '<span class="vm l' + lvl + '" tabindex="0" data-tip="' + esc(tip) + '" aria-label="Points value ' + word + '"><i></i><i></i><i></i>' + (lvl != 2 ? "<em>" + word + "</em>" : "") + "</span>";
 }
-function fareTr(f, r, first, more, moreCol) {
-  const [al, cls, tier, cash, pts, p, tax, mc, note] = f, pe = ptsEq(f), me = mcEq(f), best = minOf([cash, pe, me]);
-  const g = v => v != null && best != null && Math.abs(v - best) < 0.5 && [cash, pe, me].filter(x => x != null).length > 1 ? ' class="best"' : "";
-  const bal = p ? T.balances[p] : null, need = bal != null && pts != null && pts > bal ? '<span class="need">need ' + kfmt(pts - bal) + " more</span>" : "";
-  let h = '<tr class="t' + Math.min(3, tier) + '"><th title="' + esc((AL_FULL[al] || al) + " " + cls + (note ? ". " + note : "")) + '">' + esc(fareLab(f)) + (note ? '<span class="nt">*</span>' : "") + "</th>";
-  h += "<td" + g(cash) + ">" + (cash != null ? money(cash) : '<span class="dash">–</span>') + "</td>";
-  h += "<td" + g(pe) + ">" + (pts != null ? kfmt(pts) + eqSpan(p, pts, 0, tax) + meter(f, r) + need : '<span class="dash">–</span>') + "</td>";
-  if (hasMc()) h += "<td" + g(me) + ">" + (me != null ? kfmt(mc[0][0]) + " + " + money(mc[0][1]) + eqSpan(p, mc[0][0], mc[0][1], 0) : '<span class="dash">–</span>') + "</td>";
-  if (moreCol) h += '<td class="mfc">' + (first && more ? more : "") + "</td>";
-  return h + "</tr>";
+// ---------- the fare line: one component everywhere (list rows, phone cards, the panel): fare | cash | points (~$ value, meter) | points + cash | +N fares ----------
+// The cheapest way to pay is green. Lines in one group are compared together: a flight's own line on its own; a flight on both days, its days,
+// so the green lands on the cheaper day, and that day's label also gets a small "cheaper" tag.
+const payCells = f => f ? [f[FA.cash], ptsEq(f), mcEq(f)] : [];
+function markBest(lines, key) {
+  const g = new Map(); lines.forEach((L, i) => { const k = key ? key(L) : i; if (!g.has(k)) g.set(k, []); g.get(k).push(L); });
+  const own = L => { const v = payCells(L.f).filter(x => x != null); L.best = v.length > 1 ? Math.min(...v) : null; };
+  for (const ls of g.values()) {
+    const mins = ls.map(L => minOf(payCells(L.f))).filter(v => v != null);
+    if (ls.length == 1 || (mins.length > 1 && Math.round(Math.max(...mins)) == Math.round(Math.min(...mins)))) { ls.forEach(own); continue; }  // same price on each day: each line reads like a single row
+    const v = ls.flatMap(L => payCells(L.f)).filter(x => x != null), b = v.length > 1 ? Math.min(...v) : null; for (const L of ls) L.best = b;
+  }
+  return lines;
 }
-// The list shows each flight's cheapest fare (all of them with the All fares chip); "+N fares" opens the flight panel at its fares.
-// The panel shows every fare class with a header row.
-function fareTable(r, all) {
-  const fs = fareRows(r), id = r[C.id]; if (!fs.length) return '<div class="mu">' + (r[C.uaSold] ? "United economy award sold out" : "no price") + "</div>";
-  const every = all || F.allFares, show = every ? fs : [cheapestFare(fs)], n = fs.length - show.length, mc = hasMc();
-  const more = n > 0 ? '<button class="lnk mf" data-fpfares="' + esc(id) + '" aria-label="See all ' + fs.length + ' fares">+' + n + " fare" + (n > 1 ? "s" : "") + "</button>" : "";
-  const head = all ? '<thead><tr><th>Fare</th><td>Cash</td><td>Points</td>' + (mc ? "<td>Points + cash</td>" : "") + "</tr></thead>" : "";
-  return '<table class="fares' + (mc ? " mc" : "") + (all ? " full" : "") + '"><colgroup><col class="c1"><col class="c2"><col class="c3">' + (mc ? '<col class="c4">' : "") + (all ? "" : '<col class="c5">') + "</colgroup>" + head + show.map((f, i) => fareTr(f, r, i == 0, more, !all)).join("") + "</table>";
+// the day (flight id) whose lines hold the lowest price, when the days differ
+function cheaperDay(lines) {
+  const by = new Map(); for (const L of lines) { const v = minOf(payCells(L.f)), k = L.r[C.id]; if (!by.has(k)) by.set(k, null); if (v != null && (by.get(k) == null || v < by.get(k))) by.set(k, v); }
+  const ds = [...by].filter(([, v]) => v != null); if (new Set(ds.map(([, v]) => Math.round(v))).size < 2) return null;
+  const lo = Math.round(Math.min(...ds.map(([, v]) => v))); return ds.find(([, v]) => Math.round(v) == lo)[0];
+}
+const cheaperTag = '<span class="tag good fch">cheaper</span>';
+const dash = '<span class="dash">–</span>';
+function fareTr(L, more, moreCol) {
+  const f = L.f, r = L.r, day = L.day ? '<span class="fd">' + esc(L.day) + '</span><span class="fsep" aria-hidden="true">·</span>' : "", tag = L.cheaper ? cheaperTag : "";
+  const lab = name => '<div class="fl">' + day + '<span class="fn">' + name + "</span>" + tag + "</div>";
+  const g = v => v != null && L.best != null && Math.round(v) == Math.round(L.best) ? ' class="best"' : "", last = moreCol ? '<td class="mfc">' + more + "</td>" : "";
+  if (!f) return '<tr class="t0"><th>' + lab('<span class="mu">' + (r[C.uaSold] ? "award sold out" : "no price") + "</span>") + "</th><td>" + dash + "</td><td>" + dash + "</td>" + (hasMc() ? "<td>" + dash + "</td>" : "") + last + "</tr>";
+  const [al, cls, tier, cash, pts, p, tax, mc, note] = f, pe = ptsEq(f), me = mcEq(f);
+  const bal = p ? T.balances[p] : null, need = bal != null && pts != null && pts > bal ? '<span class="need">need ' + kfmt(pts - bal) + " more</span>" : "";
+  let h = '<tr class="t' + Math.min(3, tier) + '"><th title="' + esc((L.day ? L.day + ": " : "") + (AL_FULL[al] || al) + " " + cls + (note ? ". " + note : "") + (L.cheaper ? ". The cheaper day" : "")) + '">' + lab(esc(fareLab(f)) + (note ? '<span class="nt">*</span>' : "")) + "</th>";
+  h += "<td" + g(cash) + ">" + (cash != null ? money(cash) : dash) + "</td>";
+  h += "<td" + g(pe) + ">" + (pts != null ? '<span class="pn">' + kfmt(pts) + "</span>" + eqSpan(p, pts, 0, tax) + meter(f, r) + need : dash) + "</td>";
+  if (hasMc()) h += "<td" + g(me) + ">" + (me != null ? '<span class="pn">' + kfmt(mc[0][0]) + " + " + money(mc[0][1]) + "</span>" + eqSpan(p, mc[0][0], mc[0][1], 0) : dash) + "</td>";
+  return h + last + "</tr>";
+}
+// full = the panel's table: every fare, a header row, no "+N fares" column
+function faresHTML(lines, more, full) {
+  const mc = hasMc(), head = full ? '<thead><tr><th>Fare</th><td>Cash</td><td>Points</td>' + (mc ? "<td>Points + cash</td>" : "") + "</tr></thead>" : "";
+  return '<table class="fares' + (mc ? " mc" : "") + (full ? " full" : "") + '"><colgroup><col class="fc1"><col class="fc2"><col class="fc3">' + (mc ? '<col class="fc4">' : "") + (full ? "" : '<col class="fc5">') + "</colgroup>" + head + "<tbody>" + lines.map((L, i) => fareTr(L, i == 0 ? more : "", !full)).join("") + "</tbody></table>";
+}
+const moreBtn = (id, total, shown) => { const n = total - shown; return n > 0 ? '<button class="lnk mf" data-fpfares="' + esc(id) + '" aria-label="See all ' + total + ' fares">+' + n + " fare" + (n > 1 ? "s" : "") + "</button>" : ""; };
+const classKey = L => L.f ? L.f[FA.al] + "|" + L.f[FA.cls] : "none|" + L.r[C.id];
+// fare classes for the fare line; a flight with only a lowest cash price (no classes listed) gets one "lowest" line
+function lineFares(r) { const fs = fareRows(r); if (fs.length || r[C.cash] == null) return fs; const a = String(r[C.al]).split("/")[0], fc = /^([A-Z0-9]{2})\d/.exec(String(r[C.fl] || "").trim()); return [[fc ? fc[1] : AL_CODE[a] || a, "Lowest fare", 0, r[C.cash], null, null, null, [], ""]]; }  // the code of the first flight number (a codeshare's operating airline), else the airline's
+// The list: each flight's cheapest fare (every fare with the All fares chip). A flight on both days (Day on Both) gets one line per day, labeled by day.
+// "+N fares" ends the first line and opens the flight panel at its fares.
+function rowFares(u) {
+  const every = F.allFares;
+  if (u.length == 1) { const r = u[0], fs = lineFares(r), show = fs.length ? (every ? fs : [cheapestFare(fs)]) : [null]; return faresHTML(markBest(show.map(f => ({f, r}))), moreBtn(r[C.id], fs.length, show.filter(Boolean).length), false); }
+  const lines = []; let total = 0;
+  for (const r of u) { const fs = lineFares(r); total += fs.length; const show = fs.length ? (every ? fs : [cheapestFare(fs)]) : [null]; for (const f of show) lines.push({f, r, day: dayShort(r)}); }
+  markBest(lines, every ? classKey : () => 0);
+  const ch = cheaperDay(lines); if (ch) lines.find(L => L.r[C.id] == ch).cheaper = true;
+  return faresHTML(lines, moreBtn(u[0][C.id], total, lines.filter(L => L.f).length), false);
+}
+// The panel: every fare class; for a flight on both days, a table per day, each fare class compared across the days
+function panelFares(u) {
+  const per = u.map(r => lineFares(r).map(f => ({f, r}))), flat = per.flat();
+  if (u.length == 1) return flat.length ? faresHTML(markBest(flat), "", true) : '<div class="mu">' + (u[0][C.uaSold] ? "United economy award sold out" : "no price") + "</div>";
+  markBest(flat, classKey); const ch = cheaperDay(flat);
+  return u.map((r, i) => '<div class="fp-day">' + esc(T.daysShort[r[C.d]]) + (ch == r[C.id] ? cheaperTag : "") + "</div>" + (per[i].length ? faresHTML(per[i], "", true) : '<div class="mu">no price</div>')).join("");
 }
 const RID = new Map(R.map(r => [r[C.id], r]));
 const rowsOf = ids => ids.map(i => RID.get(i)).filter(Boolean);
@@ -289,13 +331,6 @@ function makeUnits(rows) {
   }
   return out;
 }
-// the other way to pay, so the small line never repeats the big one
-function twinAlt(r, b, pf) { const pe = pf ? ptsEq(pf) : null, isPts = pe != null && Math.abs(b.v - pe) < 0.5; return isPts ? (r[C.cash] != null ? "or " + money(r[C.cash]) + " cash" : "") : pf ? "or " + kfmt(pf[FA.pts]) + " " + unitOf(pf[FA.prog]) + ' <span class="eqc">~' + money(pe) + "</span>" : ""; }
-function twinCells(u) {
-  const costs = u.map(bestCost), lo = minOf(costs), diff = new Set(costs.filter(v => v != null).map(v => Math.round(v))).size > 1;
-  return '<div class="tw">' + u.map((r, i) => { const b = bestWay(r), good = diff && costs[i] != null && Math.abs(costs[i] - lo) < 0.5, pf = bestPtsFare(r);
-    return '<div class="twc' + (good ? " good" : "") + '"><span class="twd">' + esc(T.daysShort[r[C.d]]) + (good ? " · cheaper" : "") + '</span><b>' + b.h + '</b><span class="tws">' + twinAlt(r, b, pf) + "</span></div>"; }).join("") + "</div>";
-}
 // ---------- list rows (desktop) and cards (phone): tap anywhere except star, hide and Book to open the flight panel ----------
 const idsOf = u => u.map(r => r[C.id]).join(" ");
 const marks = u => ({lk: u.some(r => Store.has("like", r[C.id])), hd: u.every(r => Store.has("hide", r[C.id]))});
@@ -308,14 +343,14 @@ function rowHTML(u) {
   const r = u[0], ids = idsOf(u), {lk, hd} = marks(u), tw = u.length > 1, ch = cheapestOf(u);
   return '<tr id="r-' + esc(r[C.id]) + '" data-ids="' + esc(ids) + '" data-open tabindex="0" aria-label="' + esc(flightLabel(u)) + '" class="fr' + (tw ? " twin" : "") + (lk ? " liked" : "") + (hd ? " hid" : "") + (fpOn(u) ? " fpon" : "") + '"><td>' + likeHide(ids, lk, hd) + "</td><td>" + logoTile(r[C.al]) +
     '</td><td class="t"><div class="mu">' + esc(tw ? u.map(dayShort).join(" + ") : T.daysShort[r[C.d]]) + (MULTI ? " · " + r[C.org] : "") + '</div><b class="big">' + tm(r[C.dep]) + '</b></td><td class="t"><div class="mu">' + esc(T.destNames[r[C.to]]) + '</div><b class="big">' + tm(r[C.arr]) + (nextDay(r) ? " +1" : "") + '</b></td><td class="t">' + du(r[C.dur]) +
-    "</td><td>" + stopsTxt(r) + '<div class="mu">' + layTxt(r) + '</div><div class="mu">' + esc(r[C.al]) + (r[C.fl] ? " · " + esc(r[C.fl]) : "") + '</div></td><td class="cost">' + (tw ? twinCells(u) : fareTable(r)) + '</td><td class="t">' + bookBtn(ch) + (tw ? '<div class="mu bkd">' + esc(dayShort(ch)) + "</div>" : "") +
+    "</td><td>" + stopsTxt(r) + '<div class="mu">' + layTxt(r) + '</div><div class="mu">' + esc(r[C.al]) + (r[C.fl] ? " · " + esc(r[C.fl]) : "") + '</div></td><td class="cost">' + rowFares(u) + '</td><td class="t">' + bookBtn(ch) + (tw ? '<div class="mu bkd">' + esc(dayShort(ch)) + "</div>" : "") +
     '</td><td class="mu nt">' + detailShort(ch) + '</td><td class="chevc">' + open1 + "</td></tr>";
 }
 function cardHTML(u) {
   const r = u[0], ids = idsOf(u), {lk, hd} = marks(u), tw = u.length > 1, ch = cheapestOf(u);
   return '<div id="r-' + esc(r[C.id]) + '" data-ids="' + esc(ids) + '" data-open tabindex="0" aria-label="' + esc(flightLabel(u)) + '" class="card box' + (tw ? " twin" : "") + (lk ? " liked" : "") + (hd ? " hid" : "") + (fpOn(u) ? " fpon" : "") + '"><div class="c1">' + logoTile(r[C.al]) + '<div class="cm"><div class="ct1">' + tm(r[C.dep]) + " <small>" + T.tzOrigin + "</small> → " + tm(r[C.arr]) + (nextDay(r) ? "+1" : "") + " <small>" + T.tzDest + '</small></div><div class="ct2">' + du(r[C.dur]) + " · " + stopsTxt(r) + " · " + layTxt(r) + "</div>" +
     (ONE && !MULTI && !tw ? "" : '<div class="ct3">' + esc(tw ? u.map(dayShort).join(" + ") : T.daysShort[r[C.d]]) + " · " + (MULTI ? r[C.org] + " → " : "") + r[C.to] + "</div>") + "</div>" + open1 + "</div>" +
-    '<div class="cc">' + (tw ? twinCells(u) : fareTable(r)) + "</div>" +
+    '<div class="cc">' + rowFares(u) + "</div>" +
     '<div class="c2"><span class="mu">' + esc(r[C.al]) + (tw ? " · book " + esc(dayShort(ch)) : "") + '</span><span class="sp"></span>' + bookBtn(ch) + likeHide(ids, lk, hd) + "</div></div>";
 }
 // Keep what you are looking at in place when the list redraws (works in Safari too, which has no scroll anchoring)
@@ -361,7 +396,38 @@ function paintMini() {
 window.addEventListener("scroll", paintMini, {passive: true});
 // ---------- the flight panel: one way into a flight (side panel on a wide screen, bottom sheet on a phone); it never moves the page ----------
 const FP = {open: false, ids: [], back: null};
-const sec = (title, body, id) => '<section class="fp-sec"' + (id ? ' id="' + id + '"' : "") + "><h3>" + title + "</h3>" + body + "</section>";
+// The panel opens with the times, one summary line, the fares and Book. Everything else is a folded section whose closed line carries
+// the key fact (warnings in red or amber). Sections opened during the visit stay open for the next flight (kept for this tab only).
+const FPSEC = (() => { try { return new Set(JSON.parse(sessionStorage.getItem("prism-fp-open") || "[]")); } catch (e) { return new Set(); } })();
+const keepSecs = () => { try { sessionStorage.setItem("prism-fp-open", JSON.stringify([...FPSEC])); } catch (e) {} };
+const foldChev = '<svg class="fchev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+const fold = (key, title, sum, body) => body ? '<details class="fp-sec fp-fold" data-sec="' + key + '"' + (FPSEC.has(key) ? " open" : "") + '><summary><span class="fs-tx"><span class="fs-t">' + title + '</span><span class="fs-s">' + sum + "</span></span>" + foldChev + '</summary><div class="fs-b">' + body + "</div></details>"
+  : '<div class="fp-sec fp-fold fp-flat" data-sec="' + key + '"><div class="fp-fl"><span class="fs-tx"><span class="fs-t">' + title + '</span><span class="fs-s">' + sum + "</span></span></div></div>";
+document.addEventListener("toggle", e => { const d = e.target; if (!d.classList || !d.classList.contains("fp-fold")) return; if (d.open) FPSEC.add(d.dataset.sec); else FPSEC.delete(d.dataset.sec); keepSecs(); }, true);
+const warnSpan = (lvl, t) => lvl >= 2 ? '<span class="' + (lvl == 3 ? "bad" : "warnt") + '">' + t + "</span>" : t;
+// weather at a connection on the flight's own day(s): "storms Tue night, Wed day and night" on a Wed flight reads "storms Wed"
+function wxOn(code, days) {
+  const w = T.wx[code]; if (!w) return ""; const m = /^(\S+)\s+(.*)$/.exec(w); if (!m) return "";
+  const WK = new Set(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
+  const on = [...new Set(m[2].split(/,\s*/).map(s => { const d = s.split(" ")[0]; return WK.has(d) ? (days.has(d) ? d : null) : s; }).filter(Boolean))];
+  return on.length ? m[1] + " " + on.join(" and ") : "";
+}
+const wkday = (d, plus) => new Date(Date.parse(T.dayDates[String(d)] + "T12:00:00Z") + (plus || 0) * 864e5).toLocaleDateString("en-US", {weekday: "short", timeZone: "UTC"});
+function legsSum(u) {
+  const r = u[0]; if (!r[C.st]) return "Nonstop";
+  const days = new Set(u.flatMap(x => nextDay(x) ? [wkday(x[C.d]), wkday(x[C.d], 1)] : [wkday(x[C.d])]));
+  const via = r[C.via] || [], lays = r[C.lays] || [], ls = [];
+  for (let i = 0; i < Math.max(via.length, lays.length); i++) {
+    const code = via[i], m = lays[i], w = []; let lvl = 0;
+    if (m != null) { if (m < 45) { w.push("tight"); lvl = 3; } else if (m < 60) { w.push("short"); lvl = 2; } else if (m >= 180) { w.push("long"); lvl = 1; } }
+    const x = code ? wxOn(code, days) : ""; if (x) { w.push(x); lvl = Math.max(lvl, 2); }
+    ls.push({code, m, w, lvl});
+  }
+  const warn = ls.filter(x => x.lvl >= 2), long = ls.filter(x => x.lvl == 1), show = warn.length ? warn : long.length ? long : ls;
+  const out = [r[C.st] + (r[C.st] > 1 ? " stops" : " stop")].concat(show.filter(x => x.m != null || x.code).map(x => warnSpan(x.lvl, (x.m != null ? du(x.m) + (x.code ? " in " : "") : "") + (x.code ? esc(place(x.code)) : "") + (x.w.length ? " (" + esc(x.w.join("; ")) + ")" : ""))));
+  if (!lays.length) out.push("layover length not listed"); if (viaUnl(r)) out.push("second stop not listed");
+  return out.join(", ");
+}
 function legsHTML(r) {
   const L = r[C.legs] && r[C.legs].length ? r[C.legs] : null, lays = r[C.lays] || [];
   if (!L) return '<div class="legs-none">' + stopsTxt(r) + (r[C.st] ? " · " + layTxt(r) : "") + (r[C.fl] ? '<div class="mu">Flights ' + esc(r[C.fl]) + ". Times for each flight were not listed for this one.</div>" : "") + "</div>";
@@ -373,18 +439,32 @@ function legsHTML(r) {
   });
   return h + '</ol><div class="mu">Times are local at each airport.</div>';
 }
-function heldHTML(u) {
-  const h = T.held; if (!h) return "";
-  const r = u[0], hd = Math.round(Date.parse(T.dayDates[String(h.d)] + "T12:00:00") / 864e5), hdur = h.arr - h.dep - TZOFF;
-  const pill = (txt, good) => '<span class="dpill' + (good == null ? "" : good ? " good" : " bad") + '">' + txt + "</span>";
-  const out = [];
-  for (const x of u) { if (x[C.cash] == null) continue; const d = Math.round(x[C.cash] - h.price); out.push(pill((u.length > 1 ? esc(dayShort(x)) + " " : "") + (d < 0 ? money(-d) + " less" : d > 0 ? money(d) + " more" : "same price"), d == 0 ? null : d < 0)); }
-  const la = (dayIdx(r) - hd) * 1440 + r[C.arr] - h.arr;
-  if (u.length == 1) out.push(pill(la == 0 ? "lands at the same time" : "lands " + (Math.abs(la) >= 1440 ? Math.round(Math.abs(la) / 1440) + (Math.abs(la) >= 2880 ? " days " : " day ") : du(Math.abs(la)) + " ") + (la < 0 ? "earlier" : "later"), la == 0 ? null : la < 0));
-  const dd = r[C.dur] - hdur; if (hdur > 0) out.push(pill(dd == 0 ? "same trip time" : du(Math.abs(dd)) + (dd < 0 ? " shorter trip" : " longer trip"), dd == 0 ? null : dd < 0));
-  return sec("Compared with your ticket", '<div class="mu">' + esc(h.flight) + ", " + esc(T.daysShort[h.d] || "") + " " + tm(h.dep) + " → " + tm(h.arr) + " " + T.tzDest + ", " + money(h.price) + '</div><div class="dps">' + out.join("") + "</div>");
+// against the ticket already held: price (per day), landing time, trip time; better is green, worse is red
+function heldParts(u) {
+  const h = T.held, r = u[0], hd = Math.round(Date.parse(T.dayDates[String(h.d)] + "T12:00:00") / 864e5), hdur = h.arr - h.dep - TZOFF, out = [];
+  for (const x of u) {
+    const day = u.length > 1 ? esc(dayShort(x)) : "";
+    if (x[C.cash] != null) { const d = Math.round(x[C.cash] - h.price); out.push({k: "price", day, t: d < 0 ? money(-d) + " less" : d > 0 ? money(d) + " more" : "same price", good: d == 0 ? null : d < 0}); }
+    const la = (dayIdx(x) - hd) * 1440 + x[C.arr] - h.arr;
+    out.push({k: "lands", day, t: la == 0 ? "lands at the same time" : "lands " + (Math.abs(la) >= 2880 ? Math.round(Math.abs(la) / 1440) + " days " : du(Math.abs(la)) + " ") + (la < 0 ? "earlier" : "later"), good: la == 0 ? null : la < 0});
+  }
+  const dd = r[C.dur] - hdur; if (hdur > 0) out.push({k: "dur", day: "", t: dd == 0 ? "same trip time" : du(Math.abs(dd)) + (dd < 0 ? " shorter trip" : " longer trip"), good: dd == 0 ? null : dd < 0});
+  return out;
 }
-function twinHTML(u) { return sec("Both days", twinCells(u) + '<div class="mu" style="margin-top:6px">Same flights on each day. Green is the cheaper day, by the cheapest way to pay.</div>'); }
+const heldTxt = p => p.good == null ? p.t : '<span class="' + (p.good ? "good" : "bad") + '">' + p.t + "</span>";
+// closed line: price and landing time (each day's, for a flight on both days); the opened section adds the ticket and the trip time, not the same facts again
+function heldSum(u) { const ps = heldParts(u).filter(p => p.k != "dur"), days = [...new Set(ps.map(p => p.day))]; return days.map(d => (d ? d + " " : "") + ps.filter(p => p.day == d).map(heldTxt).join(d ? ", " : " · ")).join(" · "); }
+function heldBody(u) { const h = T.held, dur = heldParts(u).filter(p => p.k == "dur"); return '<div class="mu">Your ticket: ' + esc(h.flight) + ", " + esc(T.daysShort[h.d] || "") + " " + tm(h.dep) + " → " + tm(h.arr) + " " + T.tzDest + ", " + money(h.price) + "</div>" + (dur.length ? '<div class="dps">' + dur.map(p => '<span class="dpill' + (p.good == null ? "" : p.good ? " good" : " bad") + '">' + p.t + "</span>").join("") + "</div>" : ""); }
+function creditsSum(u) {
+  const r = cheapestOf(u), als = String(r[C.al]).split("/"), out = [];
+  for (const a of als) {
+    const p = AL_PROG[a], bal = p ? T.balances[p] : null, c = T.credits[a];
+    if (bal != null) out.push(bal.toLocaleString() + " " + esc(PNAME[p] || a));
+    if (c && c.sure) out.push(money(c.sure) + " " + esc(a) + " credit");
+    if (c && c.soon && c.soonDate) out.push('<span class="bad">' + money(c.soon) + " expires in " + monthsLeft(c.soonDate) + "</span>");
+  }
+  return out.join(" · ") || "None on file for " + esc(als.join(" or "));
+}
 function creditsHTML(u) {
   const r = cheapestOf(u), als = String(r[C.al]).split("/"), out = [];
   for (const a of als) {
@@ -398,17 +478,19 @@ function creditsHTML(u) {
 }
 const primaryOf = r => primaryBook(r);
 function linksHTML(r) { const p = primaryOf(r); return '<div class="bl">' + bookLinks(r).filter(l => l.url != p.url).map(l => '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + "</a>").join("") + "</div>"; }
+const otherLinks = r => { const p = primaryOf(r); return bookLinks(r).filter(l => l.url != p.url); };
 function panelBody(u) {
-  const r = u[0], tw = u.length > 1, notes = [...new Set(u.map(x => x[C.notes]).filter(Boolean))];
-  let h = '<div class="fp-sum">' + logoTile(r[C.al]) + "<div><b>" + esc(r[C.al]) + "</b>" + (r[C.fl] ? " · " + esc(r[C.fl]) : "") + '<div class="ink2">' + du(r[C.dur]) + " total · " + stopsTxt(r) + "</div></div></div>";
-  if (tw) h += twinHTML(u);
-  h += heldHTML(u);
-  h += sec("Flights", legsHTML(r));
-  h += sec("Fares and ways to pay", u.map(x => (tw ? '<div class="fp-day">' + esc(T.daysShort[x[C.d]]) + "</div>" : "") + fareTable(x, true)).join("") + '<p class="fp-key">Green: the cheapest way to pay in each fare class. Purple: points at a typical value (hover or tap for the math). Bars: how good a use of points the fare is.</p>', "fpFares");
-  h += sec("Credits and points", creditsHTML(u));
-  if (notes.length || r[C.fare]) h += sec("Notes", notes.map(n => "<div>" + esc(n) + "</div>").join("") + (r[C.fare] ? '<div class="mu">Prices from: ' + esc(r[C.fare]) + "</div>" : ""));
-  h += sec("Other ways to book", u.map(x => (tw ? '<div class="fp-day">' + esc(T.daysShort[x[C.d]]) + "</div>" : "") + linksHTML(x)).join("") + '<div class="mu">Airline links open that airline\'s search for the day and route; pick ' + esc(r[C.fl] || "the flight shown") + ". Nothing is bought from here.</div>");
-  return h;
+  const r = u[0], tw = u.length > 1, ko = FPSEC.has("key"), np = [...new Set(u.flatMap(x => String(x[C.notes] || "").split(/;\s*/)).map(x => x.trim()).filter(Boolean))], notes = np.filter(n => !np.some(o => o != n && o.includes(n)));
+  let h = '<div class="fp-sum">' + logoTile(r[C.al], 1) + '<div class="fp-line">' + ["<b>" + esc(r[C.al]) + "</b>"].concat(r[C.fl] ? [esc(r[C.fl])] : [], [du(r[C.dur]) + " total", stopsTxt(r)]).map(x => "<span>" + x + "</span>").join("\u00a0· ") + "</div></div>";
+  h += '<section class="fp-sec fp-main" id="fpFares"><div class="fp-h"><h3>Fares and ways to pay</h3><button class="qb" type="button" data-fpkey aria-expanded="' + ko + '" aria-controls="fpKey" aria-label="What the colors mean"><span aria-hidden="true">?</span></button></div>' +
+    '<p class="fp-key" id="fpKey"' + (ko ? "" : " hidden") + ">Green: the cheapest way to pay in each fare class" + (tw ? ", compared across the two days (the cheaper day is tagged)" : "") + ". Purple: points at a typical value (hover or tap for the math). Bars: how good a use of points the fare is.</p>" + panelFares(u) + "</section>";
+  h += '<div class="fp-folds">' + fold("legs", "Flights and layovers", legsSum(u), legsHTML(r));
+  if (T.held) h += fold("held", "Compared with your ticket", heldSum(u), heldBody(u));
+  h += fold("credits", "Credits and points", creditsSum(u), creditsHTML(u));
+  if (notes.length || r[C.fare]) h += fold("notes", "Notes", notes.length ? notes.map(esc).join("; ") : "Prices from " + esc(r[C.fare]), notes.length && r[C.fare] ? '<div class="mu">Prices from: ' + esc(r[C.fare]) + "</div>" : "");
+  const nl = u.map(x => otherLinks(x).length), tot = nl.reduce((a, b) => a + b, 0);
+  h += fold("links", "Other ways to book", tot + (tot == 1 ? " link" : " links") + (tw && nl.every(n => n == nl[0]) ? ", " + nl[0] + " for each day" : ""), u.map(x => (tw ? '<div class="fp-day">' + esc(T.daysShort[x[C.d]]) + "</div>" : "") + linksHTML(x)).join("") + '<div class="mu">Airline links open that airline\'s search for the day and route; pick ' + esc(r[C.fl] || "the flight shown") + ". Nothing is bought from here.</div>");
+  return h + "</div>";
 }
 function panelFoot(u) {
   const ch = cheapestOf(u), order = [ch].concat(u.filter(x => x !== ch));
@@ -483,7 +565,7 @@ function closeCompare() { if (!CMP.open) return; CMP.open = false; Tip.hide(); $
 for (const id of ["fpScrim", "cmpScrim"]) for (const ev of ["wheel", "touchmove"]) $(id).addEventListener(ev, e => e.preventDefault(), {passive: false});
 for (const [id, inner] of [["fp", ".fp-body"], ["cmp", ".cmp-body"]]) for (const ev of ["wheel", "touchmove"]) $(id).addEventListener(ev, e => { if (!e.target.closest(inner)) e.preventDefault(); }, {passive: false});
 $("fpBody").addEventListener("scroll", () => Tip.hide(), {passive: true}); $("cmpBody").addEventListener("scroll", () => Tip.hide(), {passive: true});
-function trap(e, box) { const f = [...box.querySelectorAll('a[href],button:not([disabled]),[tabindex="0"]')].filter(x => x.offsetParent !== null); if (!f.length) return; const a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus({preventScroll: true}); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus({preventScroll: true}); } }
+function trap(e, box) { const f = [...box.querySelectorAll('a[href],button:not([disabled]),summary,[tabindex="0"]')].filter(x => x.offsetParent !== null); if (!f.length) return; const a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus({preventScroll: true}); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus({preventScroll: true}); } }
 document.addEventListener("keydown", e => {
   if (e.key == "Escape") { if (FP.open) { e.stopImmediatePropagation(); closePanel(); } else if (CMP.open) { e.stopImmediatePropagation(); closeCompare(); } return; }
   if (e.key == "Tab") { if (FP.open) trap(e, $("fp")); else if (CMP.open) trap(e, $("cmp")); return; }
@@ -508,6 +590,7 @@ document.addEventListener("click", e => {
   if (chip) { const k = chip.dataset.chip; if (k == "liked") { F.liked = !F.liked; changed(); } else if (k == "allf") { F.allFares = !F.allFares; changed(); } else if (k == "hid") { F.hid = !F.hid; changed(); } else if (k == "reset") { F = DEF(); changed(); } else openSheet(k, chip); return; }
   const lk = t.closest("[data-like]"); if (lk) { toggleMark("like", lk.dataset.like.split(" ")); return; }
   const hd = t.closest("[data-hide]"); if (hd) { toggleMark("hide", hd.dataset.hide.split(" ")); return; }
+  const kb = t.closest("[data-fpkey]"); if (kb) { const on = kb.getAttribute("aria-expanded") != "true", k = $("fpKey"); kb.setAttribute("aria-expanded", on); if (k) k.hidden = !on; if (on) FPSEC.add("key"); else FPSEC.delete("key"); keepSecs(); return; }
   if (t.closest("#fpX") || t.id == "fpScrim") { closePanel(); return; }
   if (t.closest("#cmpX") || t.id == "cmpScrim") { closeCompare(); return; }
   if (t.closest("#cmpFab")) { openCompare(); return; }

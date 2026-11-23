@@ -65,10 +65,16 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .bl a{padding:6px 0;min-height:32px}
 .gh small{font-weight:500;color:var(--ink2)}
 /* cost: one row per fare class in fixed columns; a grey left edge steps darker by class; green = cheapest way to pay in the row */
-.res td.cost{min-width:420px}
-.fares{border-collapse:separate;border-spacing:0 3px;font-size:13px;table-layout:fixed;width:436px}
-.fares.mc{width:586px}
-.fares col.c1{width:128px}.fares col.c2{width:62px}.fares col.c3{width:184px}.fares col.c4{width:150px}.fares col.c5{width:62px}
+.res td.cost{min-width:494px}
+.fares{border-collapse:separate;border-spacing:0 3px;font-size:13px;table-layout:fixed;width:478px}
+.fares.mc{width:628px}
+/* column classes are fc1 to fc5 (the card's .c1 and .c2 layout classes used to match these cols and undo their widths) */
+.fares col.fc1{width:184px}.fares col.fc2{width:62px}.fares col.fc3{width:156px}.fares col.fc4{width:150px}.fares col.fc5{width:76px}
+/* the label: fare name, and on a flight shown for both days the day first and, on the cheaper day, a tag; the name gives way first */
+.fares .fl{display:flex;flex-wrap:wrap;align-items:center;gap:0 5px;min-width:0}
+.fares .fn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fares .fd,.fares .fsep,.fares .fch{flex:none}
+.fares .fsep{color:var(--muted)}
 .fares th{font-weight:600;text-align:left;padding:3px 8px 3px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2);box-shadow:inset 3px 0 0 var(--line2)}
 .fares tr.t1 th{box-shadow:inset 3px 0 0 #a9a8a1}.fares tr.t2 th{box-shadow:inset 3px 0 0 #7d7c76}.fares tr.t3 th{box-shadow:inset 3px 0 0 #4f4e4a}
 .fares td{padding:3px 8px;white-space:nowrap}
@@ -77,7 +83,7 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .fares td.best .eq{color:var(--good)}
 .fares .dash{color:var(--muted)}
 .fares .nt{color:var(--muted);font-weight:400;margin-left:1px}
-.fares .mfc{text-align:right}
+.fares .mfc{text-align:right;padding-left:4px}
 .need{display:inline-block;margin-left:6px;font-size:11px;font-weight:650;color:var(--bad)}
 .eq{color:var(--pts);font-weight:500;cursor:help;outline:none}
 @media (hover:hover){.eq{border-bottom:1px dotted currentColor}}
@@ -91,6 +97,10 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .vm.l3 em{color:var(--good)}.vm.l1 em{color:var(--bad)}
 .tag.bad{background:var(--badbg);color:var(--bad)}
 .mf{min-height:28px;padding:2px 0;font-size:13px}
+/* tap areas of 44 px around small controls, drawn invisibly so nothing moves */
+.mf,.lh button,a.btn.book{position:relative}
+.mf::after{content:"";position:absolute;left:-6px;right:-4px;top:-8px;bottom:-8px}
+.lh button::after,a.btn.book::after{content:"";position:absolute;inset:-3px}
 .sth{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;font-weight:600}
 .sth.on{color:var(--acc)}
 .sth.sm{font-size:12px;font-weight:500;color:var(--acc);margin-left:6px}
@@ -124,14 +134,10 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .card[data-open]{cursor:pointer}.card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .card.fpon{box-shadow:0 0 0 2px var(--acc)}.card.liked.fpon{box-shadow:inset 4px 0 0 var(--likeline),0 0 0 2px var(--acc)}
 .bkd{margin-top:3px;text-align:center}
-/* twin rows: one row for a flight that runs on both days, each day's best price side by side, the cheaper in green */
-.tw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-width:460px}
-.twc{display:flex;flex-direction:column;gap:1px;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
-.twc .twd{font-size:11.5px;font-weight:650;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.twc b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.twc b small{font-size:11.5px;font-weight:500;color:var(--ink2)}
-.twc .tws{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.twc.good{border-color:var(--good);background:var(--goodbg)}.twc.good b,.twc.good .twd{color:var(--good)}
+/* a flight on both days (Day on Both): the same fare line, one per day, labeled by day; the cheaper day's label carries a green tag */
+.fares .fd{color:var(--ink);font-weight:650}
+.tag.good{background:var(--goodbg);color:var(--good)}
+.fch{font-size:10.5px;padding:1px 5px;margin-left:2px}
 /* the flight panel: side panel on a wide screen, bottom sheet on a phone; it covers the page and never moves it */
 .fpscrim,.cmpscrim{position:fixed;inset:0;background:rgba(8,10,18,.32);opacity:0;visibility:hidden;transition:opacity .16s,visibility 0s linear .16s}
 .fpscrim{z-index:55}.cmpscrim{z-index:51}
@@ -140,7 +146,7 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .fp.open{visibility:visible;transform:none;transition:transform .2s ease}
 @media (min-width:700px){.fp{top:0;right:0;bottom:0;width:min(560px,94vw);border-left:1px solid var(--line);transform:translateX(104%)}}
 @media (max-width:699px){.fp{left:0;right:0;bottom:0;max-height:90vh;max-height:90dvh;border-radius:18px 18px 0 0;transform:translateY(104%)}.fp-head{padding-top:18px}.fp-head::before{content:"";position:absolute;left:50%;top:7px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--line2)}}
-@media (prefers-reduced-motion:reduce){.fp,.fp.open,.fpscrim,.cmpscrim{transition:none}}
+@media (prefers-reduced-motion:reduce){.fp,.fp.open,.fpscrim,.cmpscrim,.fchev{transition:none}}
 .fp-head{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:start;gap:2px 8px;padding:14px 14px 10px 16px;border-bottom:1px solid var(--line)}
 .fp-ht{display:contents}
 #fpSub{grid-column:1;grid-row:1;align-self:center}#fpLH{grid-column:2;grid-row:1}#fpX{grid-column:3;grid-row:1}#fpT{grid-column:1/-1;grid-row:2}
@@ -156,13 +162,37 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .fp-foot .btn.pri{color:var(--onacc)}
 .fpbl{flex:1 1 160px;min-width:0}
 @media (max-width:699px){.fp-foot .btn{flex:1}.fpbl{flex-basis:100%;order:3}}
-.fp-sum{display:flex;gap:12px;align-items:center;font-size:14px}
+.fp-sum{display:flex;gap:10px;align-items:center;font-size:14px}
+.fp-line{min-width:0;color:var(--ink2)}.fp-line b{color:var(--ink)}.fp-line span{white-space:nowrap}
 .fp-sec h3{margin:20px 0 8px;font-size:12px;font-weight:650;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
 .fp-sec{font-size:14px}
 .fp-sec.hl{border-radius:10px}
 .fp-sec .mu{font-size:12.5px}
 .fp-day{font-size:13px;font-weight:650;margin:10px 0 2px}
 .fp-key{font-size:12px;color:var(--muted);margin:8px 0 0;max-width:70ch}
+/* the fares heading, with a small "?" that shows what the colors mean */
+.fp-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 2px}
+.fp-h h3,.fp-sec .fp-h h3{margin:0}
+.qb{flex:none;width:44px;height:44px;margin:-6px -12px -6px 0;padding:0;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+.qb span{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line2);font-size:12px;font-weight:700}
+.qb[aria-expanded="true"] span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qb:focus-visible{outline:2px solid var(--acc);outline-offset:-4px;border-radius:12px}
+#fpKey{margin:0 0 6px}
+/* folded sections: a title and a one-line summary with the key fact; tap to open */
+.fp-folds{margin-top:18px;border-top:1px solid var(--line)}
+.fp-fold{border-bottom:1px solid var(--line)}
+.fp-fold>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 2px;cursor:pointer}
+.fp-fold>summary::-webkit-details-marker{display:none}
+.fp-fl{display:flex;align-items:center;min-height:56px;padding:8px 2px}
+.fp-fold>summary:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;border-radius:8px}
+.fs-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fs-t{font-size:12px;font-weight:650;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
+.fs-s{font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+@media (hover:hover){.fp-fold>summary:hover .fs-t{color:var(--ink)}}
+.fchev{flex:none;color:var(--muted);transition:transform .15s}
+.fp-fold[open] .fchev{transform:rotate(90deg)}
+.fs-b{padding:0 0 14px}
+.fp .warnt{color:var(--warn)}
 .dps{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .dpill{display:inline-block;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--ink2)}
 .dpill.good{background:var(--goodbg);color:var(--good)}.dpill.bad{background:var(--badbg);color:var(--bad)}
@@ -178,12 +208,13 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .lay .wx{display:block}
 .legs-none{font-size:14px}
 .fp .fares.full{width:100%;table-layout:fixed;margin:2px 0}
-.fp .fares.full col.c1{width:32%}.fp .fares.full col.c2{width:15%}.fp .fares.full col.c3{width:auto}.fp .fares.full col.c4{width:27%}
+.fp .fares.full col.fc1{width:36%}.fp .fares.full col.fc2{width:14%}.fp .fares.full col.fc3{width:auto}.fp .fares.full col.fc4{width:27%}
 .fp .fares.full td,.fp .fares.full tbody th{white-space:normal}
-@media (max-width:699px){.fp .fares.full{font-size:13px}.fp .fares.full col.c1{width:30%}.fp .fares.full col.c2{width:17%}.fp .fares.full col.c4{width:26%}.fp .fares.full td,.fp .fares.full th{padding-left:6px;padding-right:6px}}
+.fp .fares.full .fn{white-space:normal}
+@media (max-width:699px){.fp .fares.full{font-size:13px}.fp .fares.full col.fc1{width:42%}.fp .fares.full col.fc2{width:17%}.fp .fares.full col.fc4{width:26%}.fp .fares.full td,.fp .fares.full th{padding-left:6px;padding-right:6px}}
 .fp .fares.full thead th,.fp .fares.full thead td{font-size:11px;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;box-shadow:none;padding-bottom:0}
 .fp .fares.full thead td:nth-child(2){text-align:right}
-.fp .bl a{min-height:36px;display:flex;align-items:center}
+.fp .bl a{min-height:44px;display:flex;align-items:center}
 /* compare liked flights */
 .cmpfab{position:fixed;z-index:31;right:max(16px,env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));display:none;align-items:center;gap:8px;min-height:48px;padding:10px 20px 10px 16px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font:inherit;font-size:15px;font-weight:650;box-shadow:var(--shadow);cursor:pointer}
 .cmpfab svg{width:18px;height:18px;color:var(--likeline)}
@@ -213,7 +244,8 @@ a.btn.book{text-decoration:none;display:inline-flex;align-items:center;color:var
 .cmpk{padding:4px 16px 16px}
 @media (max-width:699px){.cmpt th,.cmpt td{min-width:128px;padding:8px 10px}.cmpt .rl{min-width:82px;width:82px}}
 @media (prefers-color-scheme: dark){.fpscrim,.cmpscrim{background:rgba(0,0,0,.55)}}
-@media (max-width:699px){.fares td:nth-child(3),.fares td:nth-child(4){white-space:normal}.vm em{display:none}#chips .chip:not(.on){display:none}.chipbar{border-bottom:0;padding-top:4px;padding-bottom:0}.pick{height:100px}.pick .pv{font-size:18px;margin:0 0 4px}.chip{min-height:44px}.btn.sm{min-height:40px}.fares{font-size:13.5px}.fares col.c1{width:104px}.fares col.c2{width:52px}.fares col.c3{width:auto}.fares col.c4{width:118px}.fares col.c5{width:44px}.fares,.fares.mc{width:100%}.sg{padding:8px 12px}}
+@media (max-width:699px){.fares td:nth-child(3),.fares td:nth-child(4){white-space:normal}.vm em{display:none}#chips .chip:not(.on){display:none}.chipbar{border-bottom:0;padding-top:4px;padding-bottom:0}.pick{height:100px}.pick .pv{font-size:18px;margin:0 0 4px}.chip{min-height:44px}.btn.sm{min-height:40px}.fares{font-size:13.5px}.fares col.fc1{width:106px}.fares col.fc2{width:52px}.fares col.fc3{width:auto}.fares col.fc4{width:112px}.fares col.fc5{width:70px}.fares td{padding:3px 6px}.fares th{padding-right:4px}.fares td.mfc{padding:3px 2px 3px 4px}.fares .fl{flex-wrap:wrap}.fares .fsep{display:none}.fares .fch{order:1}.fares .fn{order:2;flex-basis:100%;white-space:normal}.card .fares .pn{display:block}.fares.mc col.fc4{width:auto}.card .fares.mc{font-size:12.5px}.card .fares.mc col.fc1{width:80px}.card .fares.mc col.fc2{width:50px}.card .fares.mc col.fc5{width:56px}.card .fares.mc td{padding:3px}.fares,.fares.mc{width:100%}.sg{padding:8px 12px}}
+@media (max-width:370px){.card .fares.mc{font-size:12px}.card .fares.mc col.fc1{width:70px}.card .fares.mc col.fc5{width:54px}}
 </style>
 </head>
 <body>
