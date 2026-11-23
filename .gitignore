@@ -4,6 +4,7 @@ data/
 site/
 sample-site/
 sample-state/
+stubs/
 build/
 src/logos.json
 # Generated and system files
