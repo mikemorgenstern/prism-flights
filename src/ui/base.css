@@ -120,14 +120,28 @@ button,select,input{font:inherit;color:inherit}
 h1{font-size:26px;letter-spacing:-.02em}
 @media (prefers-color-scheme: dark){#tip .badt{color:#b3261e}}
 /* prism-header:start */
-/* Prism header: six stripes stream from the plane's tail across the top of the page. One inline SVG; the stripes run far to the left inside the SVG and the header clips them, so they always line up with the tail. */
-.pz{position:relative;overflow:hidden;display:flex;align-items:stretch}
-.pz-art{position:absolute;top:0;overflow:visible;display:block}
-.pz-brand{position:relative;z-index:1;display:inline-flex;align-items:center;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;line-height:1}
-.pz-brand:focus-visible{outline:2px solid #fff;outline-offset:-4px;border-radius:6px}
-.pz-a{height:64px;background:#0c1020;border-bottom:1px solid rgba(255,255,255,.06)}
-.pz-a .pz-art{right:max(12px,env(safe-area-inset-right))}
-.pz-a .pz-brand{height:100%;padding:0 16px 0 max(16px,env(safe-area-inset-left));background:#0c1020;color:#fff;font-size:23px;font-weight:700;letter-spacing:-.015em}
-.pz-a .pz-brand::after{content:"";position:absolute;right:-18px;top:0;bottom:0;width:18px;background:linear-gradient(90deg,#0c1020,rgba(12,16,32,0))}
-@media (max-width:699px){.pz-a{height:52px}.pz-a .pz-art{width:99px;height:52px}.pz-a .pz-brand{font-size:20px}}
+/* Prism header: a dusk photo of a jet (src/assets/hero-N.jpg) with straight rainbow stripes, and the wordmark set over the dark left side.
+   Three designs, picked by one class on <header> in header.html: pz-v1 the jet is the prism (white beam in at the nose, six stripes out of the tail),
+   pz-v2 the same with a cut-glass jet, pz-v3 the wordmark is the prism (white line in, six stripes out, running on behind the jet).
+   The photo is a 3:1 layer pinned to the right edge; --lw is its width and --cy the height (0 to 1) of the photo that sits on the header's middle line. */
+.pz{--h:108px;--lw:1100px;--dy:0px;--cy:.47;--navy:#020b24;--img:none;--bh:calc(.1924 * var(--lw) / 3);position:relative;overflow:hidden;height:var(--h);background:var(--navy);display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
+.pz-v1{--img:url(/flights/assets/hero-1.jpg)}
+.pz-v2{--img:url(/flights/assets/hero-2.jpg);--navy:#010921;--lw:1060px;--cy:.475}
+.pz-v3{--img:url(/flights/assets/hero-3.jpg);--navy:#020d23;--lw:1000px;--cy:.495;--dy:calc((.505 - var(--cy)) * var(--lw) / 3)}
+.pz-photo{position:absolute;right:0;top:50%;width:var(--lw);aspect-ratio:3/1;transform:translateY(calc(-100% * var(--cy)));background:var(--img) center/100% 100% no-repeat}
+.pz-photo::before{content:"";position:absolute;inset:0 auto 0 -1px;width:12%;background:linear-gradient(90deg,var(--navy),transparent)}
+.pz-lead{position:relative;z-index:2;flex:none;display:flex;align-items:center;height:100%;padding:0 40px 0 max(16px,env(safe-area-inset-left))}
+.pz-lead::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--navy) 0,var(--navy) calc(100% - 44px),transparent)}
+.pz-brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;font-size:24px;font-weight:700;letter-spacing:-.015em;line-height:1}
+.pz-brand:focus-visible{outline:2px solid #fff;outline-offset:6px;border-radius:6px}
+.pz-brand .logo{width:32px;height:32px;display:block;flex:none;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.pz-beam,.pz-fan,.pz-run{display:none}
+.pz-v3 .pz-lead{padding:0 0 0 max(46px,env(safe-area-inset-left))}
+.pz-v3 .pz-brand,.pz-v3 .pz-fan,.pz-v3 .pz-run{transform:translateY(var(--dy))}
+.pz-v3 .pz-lead::before{background:linear-gradient(90deg,var(--navy) 0,var(--navy) calc(100% - var(--bh) * 1.15),transparent)}
+.pz-v3 .pz-brand .logo{display:none}
+.pz-v3 .pz-beam{display:block;position:absolute;left:0;top:calc(50% - 1px + var(--dy));width:calc(max(46px,env(safe-area-inset-left)) - 7px);height:2px;border-radius:0 2px 2px 0;background:linear-gradient(90deg,rgba(255,255,255,.35),#fff);box-shadow:0 0 8px 1px rgba(255,255,255,.55)}
+.pz-v3 .pz-fan{display:block;background:var(--navy);flex:none;margin-left:7px;height:var(--bh);width:calc(var(--bh) * 1.15)}
+.pz-v3 .pz-run{display:block;position:relative;z-index:1;flex:1 1 0;min-width:0;height:var(--bh);margin-right:calc(var(--lw) * .88 - 60px);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);background:linear-gradient(180deg,#dd3239 0%,#dd3239 12.3%,transparent 12.3%,transparent 18.1%,#f57623 18.1%,#f57623 31.2%,transparent 31.2%,transparent 36.4%,#f9bb09 36.4%,#f9bb09 48.7%,transparent 48.7%,transparent 54.6%,#99a536 54.6%,#99a536 66.3%,transparent 66.3%,transparent 71.5%,#4781b3 71.5%,#4781b3 83.1%,transparent 83.1%,transparent 89.0%,#9e60a5 89.0%,#9e60a5 100%)}
+@media (max-width:699px){.pz{--h:76px;--lw:500px}.pz-v2{--lw:490px}.pz-v3{--lw:500px}.pz-brand{font-size:21px}.pz-brand .logo{display:none}.pz-lead{padding-right:30px}.pz-lead::before{background:linear-gradient(90deg,var(--navy) 0,var(--navy) calc(100% - 34px),transparent)}.pz-v3 .pz-lead{padding-left:max(30px,env(safe-area-inset-left))}.pz-v3 .pz-beam{width:calc(max(30px,env(safe-area-inset-left)) - 6px)}}
 /* prism-header:end */

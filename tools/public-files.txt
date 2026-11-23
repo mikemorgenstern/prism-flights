@@ -47,3 +47,6 @@ examples/searches/27-03-12-boston/pae/trip.json
 examples/searches/27-03-12-boston/page-rows.json
 examples/searches/27-03-12-boston/trip.json
 examples/searches/27-03-12-boston/weather/nws.json
+src/assets/hero-1.jpg
+src/assets/hero-2.jpg
+src/assets/hero-3.jpg
