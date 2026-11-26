@@ -45,7 +45,10 @@ source; their formats are described at the top of `pipeline/merge.py`.
 
 Put it in `data/` (ignored by git), laid out like `examples/`:
 
-- `data/credits/wallet.json`: programs (airline, program, unit, balance) and credits (airline, what, amount, use-by date)
+- `data/credits/wallet.json`: programs (airline, program, unit, balance) and credits (airline, what, amount, use-by date;
+  `"useBy": null` for a credit with no end date, drawn in a "No end date" column at the end of the expiry timeline).
+  Any program gets a balance pill, not only the five airlines: Chase, Amex, Citi, Capital One and Bilt have short keys,
+  other names get one made from the name; add a cents value for the key in `src/point_values.json` to show a worth
 - `data/credits/tracking.json` and `flags.json`: which airlines are tracked, and credits marked "maybe used"
 - `data/searches/<YY-MM-DD-name>/trip.json`: the trip (dates, airports, notes), plus `page-rows.json` from the
   pipeline, and optionally `weather/nws.json` and one folder per extra origin airport

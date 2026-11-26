@@ -63,7 +63,7 @@ function renderTop() {
   const rb = $("rerun"); if (rb) { const it = "rerun:" + T.slug, p = Requests.pendingFor(it); rb.textContent = p ? "Re-run requested" : (Requests.has(it) ? "Re-run queued (undo)" : "Request a re-run"); rb.onclick = () => { if (!p) { Requests.toggle(it, "re-run " + T.short); renderTop(); } }; }
   const h = T.held;
   $("held").innerHTML = h ? '<div class="heldl">' + logoTile(h.airline, 1) + '<span>You hold <b>' + esc(h.flight) + "</b> from " + esc(h.fromName) + ", " + esc(T.daysShort[h.d] || "") + " " + tm(h.dep) + " → " + tm(h.arr) + " " + T.tzDest + ", " + money(h.price) + '. <span class="mu">Prices below compare to it.</span></span></div>' : "";
-  $("pills").innerHTML = airlinePills(T.balances, T.credits, T.values);
+  $("pills").innerHTML = airlinePills(T.balances, T.credits, T.values, null, T.pillProgs);
   renderSeg();
 }
 function renderSeg() {
