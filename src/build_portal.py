@@ -103,13 +103,15 @@ def trip_data(tdir, wallet, flags):
     vias = {v for r in rows for v in r[7]}
     bal = {BAL_KEY[p['airline']]: p['balance'] for p in wallet['programs'] if p['airline'] in BAL_KEY}
     return t, rows, dict(slug=t['slug'], title=t['title'], short=t['short'], scope=t.get('scope', ''), searched=t['searched'], searchedLabel=t.get('searched_label', ''),
-        days=days, daysShort=days, dayDates=dayd, destNames=t['dest_names'], destDefault=t.get('dest_default', list(t['dest_names'])),
+        durDefault=int(float(t.get('dur_default_hours', DUR_DEFAULT / 60)) * 60), days=days, daysShort=days, dayDates=dayd, destNames=t['dest_names'], destDefault=t.get('dest_default', list(t['dest_names'])),
         tzOrigin=t.get('tz_origin', 'PT'), tzDest=t.get('tz_dest', 'ET'), originName=t.get('origin_name', t.get('origin', '')), destRegion=t.get('dest_region', 'destination'),
         origins={k: v['name'] for k, v in origins.items()}, dates=dates,
         city={v: CITY.get(v, v) for v in vias}, wx=weather_badges(tdir, set(dates)), held=t.get('held'), credits=credit_view(wallet, flags), balances=bal, values=VALUES, fromDefault=t.get('from_default'), why=t.get('why', ''), rows=rows)
 
-def picks(rows, cv, days, tzo, dest_default=None, slug='', from_default=None):
-    rows = [r for r in rows if not r[21] and (not dest_default or r[2] in dest_default) and (not from_default or r[24] in from_default) and r[5] <= 660] or rows
+DUR_DEFAULT = 11 * 60   # the trip page's starting duration filter, in minutes; trip.json dur_default_hours changes it
+
+def picks(rows, cv, days, tzo, dest_default=None, slug='', from_default=None, dur_default=DUR_DEFAULT):
+    rows = [r for r in rows if not r[21] and (not dest_default or r[2] in dest_default) and (not from_default or r[24] in from_default) and r[5] <= dur_default] or rows
     def miles(r):
         best = None
         for p, (cols, code) in PROGS.items():
@@ -162,7 +164,7 @@ def main():
         last = max(t['dates'])
         h = t.get('held')
         trips.append(dict(slug=t['slug'], name=t.get('card_name', t['short']), route=t.get('route', ''), count=len(rows), searched=t['searched'], searchedLabel=t.get('searched_label', ''),
-                          past=dt.date.fromisoformat(last) < today, picks=picks(rows, td['credits'], td['days'], td['tzOrigin'], td['destDefault'], t['slug'], t.get('from_default')),
+                          past=dt.date.fromisoformat(last) < today, picks=picks(rows, td['credits'], td['days'], td['tzOrigin'], td['destDefault'], t['slug'], t.get('from_default'), td['durDefault']),
                           held=(f"{h['flight']}, {td['days'].get(str(h['d']), '')} {tm(h['dep'])} {td['tzOrigin']}, ${h['price']:.2f}" if h else None),
                           airlines=sorted({r[9] for r in rows}), first=min(t['dates'])))
         print(f"built {os.path.relpath(SITE)}/{t['slug']}/index.html ({len(page):,} bytes, {len(rows)} flights)")
